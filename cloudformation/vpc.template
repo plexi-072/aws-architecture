@@ -1,0 +1,196 @@
+########################################
+
+AWSTemplateFormatVersion : '2010-09-09'
+
+########################################
+
+Description :
+  VPC & subnet create
+
+########################################
+
+Parameters :
+
+  EnvironmentType:
+    Type : "String"
+    Default : prd
+    AllowedValues :
+      - prd
+
+  Environmentld:
+    Type : "String"
+    Default : prd
+    AllowedValues :
+      - prd
+
+  SystemId:
+    Type : "String"
+    Default : 
+    AllowedValues :
+      - 
+
+########################################
+
+Mappings :
+
+########################################
+
+  Project:
+    WholeCidr :
+      prd: 10.10.0.0/16
+
+    VpcCidr:
+      prd: 10.10.1.0/20
+
+    Private1aCidr:
+      prd: 10.10.1.0/24
+
+    Private1cCidr:
+      prd: 10.10.2.0/24
+
+    Public1aCidr:
+      prd: 10.10.3.0/24
+
+    Public1cCidr:
+      prd: 10.10.4.0/24
+
+########################################
+
+Resources :
+
+########################################
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !FindInMap [ Project, VpcCidr, !Ref Environmentld ]
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      InstanceTenancy: default
+      Tags:
+      - Key: Name
+        Value: !Sub "vpc-${SystemId}-${Environmentld}"
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key : Name
+          Value : !Sub "igw-${SystemId}-${Environmentld}"
+
+  AttachInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId : !Ref VPC
+      InternetGatewayId : !Ref InternetGateway
+
+  RTBPrivate1a:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key : Name
+          Value : !Sub "rtb-${SystemId}-${Environmentld}-private-1a"
+
+  RTBPrivate1c:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key : Name
+          Value : !Sub "rtb-${SystemId}-${Environmentld}-private-1c"
+
+  RTBPublic1a:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key : Name
+          Value : !Sub "rtb-${SystemId}-${Environmentld}-public-1a"
+
+  RTBPublic1c:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key : Name
+          Value : !Sub "rtb-${SystemId}-${Environmentld}-public-1c"
+
+  SubnetPrivate1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ Project, Private1aCidr, !Ref Environmentld]
+      AvailabilityZone: ap-northeast-1a
+      Tags:
+        - Key : Name
+          Value : !Sub "subnet-${SystemId}-${Environmentld}-private-1a"
+
+  SubnetPrivate1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ Project, Private1cCidr, !Ref Environmentld]
+      AvailabilityZone: ap-northeast-1c
+      Tags:
+        - Key : Name
+          Value : !Sub "subnet-${SystemId}-${Environmentld}-private-1c"
+
+  SubnetPublic1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ Project, Public1aCidr, !Ref Environmentld]
+      AvailabilityZone: ap-northeast-1a
+      Tags:
+        - Key : Name
+          Value : !Sub "subnet-${SystemId}-${Environmentld}-public-1a"
+
+  SubnetPublic1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !FindInMap [ Project, Public1cCidr, !Ref Environmentld]
+      AvailabilityZone: ap-northeast-1c
+      Tags:
+        - Key : Name
+          Value : !Sub "subnet-${SystemId}-${Environmentld}-public-1c"
+
+  SubnetPrivate1aAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivate1a
+      RouteTableId: !Ref RTBPrivate1a
+
+  SubnetPrivate1cAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPrivate1c
+      RouteTableId: !Ref RTBPrivate1c
+
+  SubnetPublic1aAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublic1a
+      RouteTableId: !Ref RTBPublic1a
+
+  SubnetPublic1cAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetPublic1c
+      RouteTableId: !Ref RTBPublic1c
+
+  RoutePublic1aDefault:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RTBPublic1a
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  RoutePublic1cDefault:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref RTBPublic1c
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
