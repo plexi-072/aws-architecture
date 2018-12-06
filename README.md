@@ -1,1 +1,1 @@
-Welcome! AWS architect!!
+Welcome! AWS architecture!!
