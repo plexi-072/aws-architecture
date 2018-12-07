@@ -39,3 +39,12 @@ pip-log.txt
 .cache
 .pytest_cache
 htmlcov
+
+# Scala-IDE specific
+bin/
+.scala_dependencies
+.classpath
+.project
+.settings/
+.cache-main
+.cache-tests
