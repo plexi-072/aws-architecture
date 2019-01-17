@@ -1,0 +1,13 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Metadata: 
+Resources: 
+  "{{Userリソース名}}": 
+    Type: "AWS::IAM::User"
+    Properties: 
+      UserName: "{{User名}}"
+      LoginProfile: 
+        Password: "{{パスワード}}"
+        PasswordResetRequired: true
+      Groups: 
+        - Ref: "{{Groupリソース名1}}"
+        - Ref: "{{Groupリソース名2}}"
